@@ -12,5 +12,6 @@
 
 void display_task_init(void);
 void display_task_execute(void);
+void display_task_toggle_uart(void);
 
 #endif

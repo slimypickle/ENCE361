@@ -46,10 +46,10 @@ void app_main(void)
     // --------------------------
     // Initialise tasks
     // --------------------------
-    button_task_init();    // Initialise button polling task
+    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3); // Start PWM before button task init
+    button_task_init();    // Initialise button polling task (sets initial PWM duty to 0%)
     blinky_task_init();    // Initialise LD1 blinking task
     display_task_init();   // Initialises display task
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3); // Initialises PWM
 
 
     // --------------------------
