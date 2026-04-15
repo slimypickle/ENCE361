@@ -56,6 +56,14 @@
 #define GOAL_MAX                15000U
 #define GOAL_STEP               100U
 
+/* Dead-zone at the low end of the VR1 potentiometer travel.
+ * Physical pots have residual wiper resistance so the ADC never reads 0.
+ * Any raw reading at or below this offset is treated as the minimum pot
+ * position and maps directly to GOAL_MIN.  The value 300 (≈7 % of 4095)
+ * is well above the measured hardware minimum (~141) so the pot reliably
+ * reaches 500 even across manufacturing variation.                      */
+#define POT_RAW_OFFSET          300U
+
 /* ------------------------------------------------------------------ */
 /* Private types                                                        */
 /* ------------------------------------------------------------------ */
@@ -99,12 +107,14 @@ static uint32_t    s_pending_goal = 0;  /* goal currently shown in Set Goal*/
 /** Map raw 12-bit ADC value from VR1 to a goal (500–15000 rounded to
  *  the nearest 100 steps).
  *
- *  The linear map spans 0 → 0, 4095 → GOAL_MAX and then clamps to
- *  [GOAL_MIN, GOAL_MAX].  This ensures the pot can reach GOAL_MIN even
- *  if its wiper never reads exactly 0 (typical residual resistance).    */
+ *  Any reading at or below POT_RAW_OFFSET maps to GOAL_MIN.  Above the
+ *  offset, the usable range [POT_RAW_OFFSET, 4095] is mapped linearly
+ *  to [GOAL_MIN, GOAL_MAX], ensuring the physical pot minimum reliably
+ *  reaches 500 even with hardware variation.                            */
 static uint32_t vr1_to_goal(uint16_t raw)
 {
-    uint32_t raw_goal = ((uint32_t)raw * GOAL_MAX) / 4095U;
+    uint32_t adj = (raw > POT_RAW_OFFSET) ? (uint32_t)(raw - POT_RAW_OFFSET) : 0U;
+    uint32_t raw_goal = (adj * (GOAL_MAX - GOAL_MIN)) / (4095U - POT_RAW_OFFSET) + GOAL_MIN;
     /* Round to nearest GOAL_STEP                                        */
     uint32_t rounded = ((raw_goal + GOAL_STEP / 2) / GOAL_STEP) * GOAL_STEP;
     if (rounded < GOAL_MIN) rounded = GOAL_MIN;
