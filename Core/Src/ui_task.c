@@ -52,17 +52,21 @@
 #define CLICK_LONG_MS           1000U
 
 /* Goal-setting range and granularity */
-#define GOAL_MIN                500U
+#define GOAL_MIN                0U
 #define GOAL_MAX                15000U
 #define GOAL_STEP               100U
 
 /* Dead-zone at the low end of the VR1 potentiometer travel.
  * Physical pots have residual wiper resistance so the ADC never reads 0.
- * Any raw reading at or below this offset is treated as the minimum pot
- * position and maps directly to GOAL_MIN.  The value 300 (≈7 % of 4095)
- * is well above the measured hardware minimum (~141) so the pot reliably
- * reaches 500 even across manufacturing variation.                      */
+ * Any raw reading at or below this offset maps directly to GOAL_MIN (0).
+ * The value 300 (≈7 % of 4095) is well above the measured hardware
+ * minimum (~141) so the pot reliably reaches 0 across manufacturing
+ * variation.                                                            */
 #define POT_RAW_OFFSET          300U
+/* Compile-time guard: the offset must be strictly less than the ADC max
+ * so that the divisor (4095 - POT_RAW_OFFSET) in vr1_to_goal is > 0. */
+_Static_assert(POT_RAW_OFFSET < 4095U,
+               "POT_RAW_OFFSET must be < 4095 to avoid division by zero in vr1_to_goal");
 
 /* ------------------------------------------------------------------ */
 /* Private types                                                        */
@@ -104,13 +108,13 @@ static uint32_t    s_pending_goal = 0;  /* goal currently shown in Set Goal*/
 /* Helpers                                                              */
 /* ------------------------------------------------------------------ */
 
-/** Map raw 12-bit ADC value from VR1 to a goal (500–15000 rounded to
+/** Map raw 12-bit ADC value from VR1 to a goal (0–15000 rounded to
  *  the nearest 100 steps).
  *
- *  Any reading at or below POT_RAW_OFFSET maps to GOAL_MIN.  Above the
- *  offset, the usable range [POT_RAW_OFFSET, 4095] is mapped linearly
- *  to [GOAL_MIN, GOAL_MAX], ensuring the physical pot minimum reliably
- *  reaches 500 even with hardware variation.                            */
+ *  Any reading at or below POT_RAW_OFFSET maps to GOAL_MIN (0).  Above
+ *  the offset, the usable range [POT_RAW_OFFSET, 4095] is mapped
+ *  linearly to [GOAL_MIN, GOAL_MAX], ensuring the physical pot minimum
+ *  reliably reaches 0 even with hardware variation.                    */
 static uint32_t vr1_to_goal(uint16_t raw)
 {
     uint32_t adj = (raw > POT_RAW_OFFSET) ? (uint32_t)(raw - POT_RAW_OFFSET) : 0U;

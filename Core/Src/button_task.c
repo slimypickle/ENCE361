@@ -34,7 +34,7 @@
 /* Private state                                                        */
 /* ------------------------------------------------------------------ */
 static uint32_t s_next_run       = 0;
-static uint8_t  s_duty           = 50;
+static uint8_t  s_duty           = 0;    /* DS3 starts off (0 %) at reset */
 static bool     s_test_mode      = false;
 static uint8_t  s_sw2_tap_count  = 0;     /* consecutive taps            */
 static uint32_t s_sw2_first_tick = 0;     /* tick of first tap           */
@@ -45,6 +45,9 @@ static uint32_t s_sw2_first_tick = 0;     /* tick of first tap           */
 void button_task_init(void)
 {
     buttons_init();
+    s_duty           = 0;              /* explicitly reset to 0 % so that
+                                          soft-resets (which may not re-run
+                                          C startup) start DS3 off         */
     pwm_setDutyCycle(&htim2, TIM_CHANNEL_3, s_duty);
     s_next_run       = HAL_GetTick() + BUTTON_TASK_PERIOD_MS;
     s_sw2_tap_count  = 0;
