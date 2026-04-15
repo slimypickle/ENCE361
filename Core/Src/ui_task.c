@@ -97,11 +97,14 @@ static uint32_t    s_pending_goal = 0;  /* goal currently shown in Set Goal*/
 /* ------------------------------------------------------------------ */
 
 /** Map raw 12-bit ADC value from VR1 to a goal (500–15000 rounded to
- *  the nearest 100 steps).                                             */
+ *  the nearest 100 steps).
+ *
+ *  The linear map spans 0 → 0, 4095 → GOAL_MAX and then clamps to
+ *  [GOAL_MIN, GOAL_MAX].  This ensures the pot can reach GOAL_MIN even
+ *  if its wiper never reads exactly 0 (typical residual resistance).    */
 static uint32_t vr1_to_goal(uint16_t raw)
 {
-    /* Linear map:  0 → 500,  4095 → 15000                              */
-    uint32_t raw_goal = ((uint32_t)raw * (GOAL_MAX - GOAL_MIN)) / 4095U + GOAL_MIN;
+    uint32_t raw_goal = ((uint32_t)raw * GOAL_MAX) / 4095U;
     /* Round to nearest GOAL_STEP                                        */
     uint32_t rounded = ((raw_goal + GOAL_STEP / 2) / GOAL_STEP) * GOAL_STEP;
     if (rounded < GOAL_MIN) rounded = GOAL_MIN;
