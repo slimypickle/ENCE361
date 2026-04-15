@@ -2,18 +2,12 @@
 /**
   ******************************************************************************
   * @file    adc.c
-  * @brief   This file provides code for the configuration
-  *          of the ADC instances.
-  ******************************************************************************
-  * @attention
+  * @brief   ADC configuration.
   *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
+  * ADC1 fixed-sequence channels (ascending channel order):
+  *   IN1  (PA1) → raw_adc[0] → VR1 rotary potentiometer
+  *   IN11 (PC4) → raw_adc[1] → Joystick Y axis
+  *   IN12 (PC5) → raw_adc[2] → Joystick X axis
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -21,7 +15,6 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -52,7 +45,7 @@ void MX_ADC1_Init(void)
   hadc1.Init.LowPowerAutoWait = DISABLE;
   hadc1.Init.LowPowerAutoPowerOff = DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 3;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -66,7 +59,16 @@ void MX_ADC1_Init(void)
     Error_Handler();
   }
 
-  /** Configure Regular Channel
+  /** Configure Regular Channel – IN1 (PA1) → VR1 potentiometer
+  */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel – IN11 (PC4) → Joystick Y
   */
   sConfig.Channel = ADC_CHANNEL_11;
   sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
@@ -75,7 +77,7 @@ void MX_ADC1_Init(void)
     Error_Handler();
   }
 
-  /** Configure Regular Channel
+  /** Configure Regular Channel – IN12 (PC5) → Joystick X
   */
   sConfig.Channel = ADC_CHANNEL_12;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -112,10 +114,19 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     __HAL_RCC_ADC_CLK_ENABLE();
 
     __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
     /**ADC1 GPIO Configuration
-    PC4     ------> ADC1_IN11
-    PC5     ------> ADC1_IN12
+    PA1     ------> ADC1_IN1   (VR1 potentiometer)
+    PC4     ------> ADC1_IN11  (Joystick Y)
+    PC5     ------> ADC1_IN12  (Joystick X)
     */
+    /* PA1 – VR1 */
+    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    /* PC4, PC5 – Joystick axes */
     GPIO_InitStruct.Pin = Joystick_x_Pin|Joystick_y_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -157,9 +168,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     __HAL_RCC_ADC_CLK_DISABLE();
 
     /**ADC1 GPIO Configuration
+    PA1     ------> ADC1_IN1
     PC4     ------> ADC1_IN11
     PC5     ------> ADC1_IN12
     */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_1);
     HAL_GPIO_DeInit(GPIOC, Joystick_x_Pin|Joystick_y_Pin);
 
     /* ADC1 DMA DeInit */
@@ -171,5 +184,5 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 }
 
 /* USER CODE BEGIN 1 */
-
 /* USER CODE END 1 */
+

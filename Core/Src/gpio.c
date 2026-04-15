@@ -2,18 +2,10 @@
 /**
   ******************************************************************************
   * @file    gpio.c
-  * @brief   This file provides code for the configuration
-  *          of all used GPIO pins.
-  ******************************************************************************
-  * @attention
+  * @brief   GPIO initialisation.
   *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
+  * Added for Milestone 2:
+  *   PD0  – Buzzer output (active HIGH, through transistor buffer — net: Sound)
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -61,7 +53,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, RGB_Green_Pin|RGB_Red_Pin|RGB_Blue_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, RGB_Green_Pin|RGB_Red_Pin|RGB_Blue_Pin|Buzzer_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : SW1_Pin SW2_Pin SW3_Pin */
   GPIO_InitStruct.Pin = SW1_Pin|SW2_Pin|SW3_Pin;
@@ -102,8 +94,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(Joystick_Click_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RGB_Green_Pin RGB_Red_Pin RGB_Blue_Pin */
-  GPIO_InitStruct.Pin = RGB_Green_Pin|RGB_Red_Pin|RGB_Blue_Pin;
+  /*Configure GPIO pins : RGB_Green_Pin RGB_Red_Pin RGB_Blue_Pin Buzzer_Pin */
+  GPIO_InitStruct.Pin = RGB_Green_Pin|RGB_Red_Pin|RGB_Blue_Pin|Buzzer_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
